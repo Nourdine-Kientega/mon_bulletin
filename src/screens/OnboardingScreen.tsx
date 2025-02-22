@@ -34,7 +34,7 @@ const OnboardingScreen = () => {
 
   const handleDone = async () => {
 
-    navigation.navigate('Home');
+    navigation.navigate('Login');
     await setItem('onboarded', '1');
   };
 
