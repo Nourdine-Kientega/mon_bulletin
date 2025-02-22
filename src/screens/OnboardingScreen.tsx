@@ -3,6 +3,7 @@ import { View, StyleSheet, StatusBar, TouchableOpacity, Text } from 'react-nativ
 import Onboarding from 'react-native-onboarding-swiper';
 import LottieView from 'lottie-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { setItem } from '../utils/asyncStorage';
 
 const OnboardingScreen = () => {
   const [statusBarStyle, setStatusBarStyle] = useState<'dark-content' | 'light-content'>('light-content');
@@ -31,9 +32,10 @@ const OnboardingScreen = () => {
     }
   };
 
-  const handleDone = () => {
+  const handleDone = async () => {
 
     navigation.navigate('Home');
+    await setItem('onboarded', '1');
   };
 
   const doneButton = ({ ...props }) => {
