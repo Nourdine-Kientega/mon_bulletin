@@ -65,7 +65,7 @@ const TabBarComponent = ({ state, descriptors, navigation }: BottomTabBarProps) 
                         {isFocused ? (
                             <View
                                 style={{
-                                    backgroundColor: '#007AFF',
+                                    backgroundColor: 'gray',
                                     padding: 10,
                                     borderRadius: 25,
                                 }}

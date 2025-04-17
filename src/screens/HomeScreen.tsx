@@ -16,7 +16,7 @@ const HomeScreen = ({navigation}: HomeScreenProps) => {
     };
 
   return (
-    <View>
+    <View style={styles.container}>
       <Text>HomeScreen</Text>
 
       <TouchableOpacity style={styles.resetButton} onPress={resetOnboarding}>
@@ -30,7 +30,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        marginTop: 50,
+        // marginTop: 50,
+        backgroundColor: '#fff',
+        marginBottom: 20,
     },
     lottie: {
         width: 300,

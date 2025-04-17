@@ -11,7 +11,7 @@ const WelcomeScreen = ({ navigation }: WelcomeScreenProps) => {
 
   const handleStart = async () => {
     await setOnboardingStorageItem('onboarded', '1');
-    navigation.replace('HomeScreen');
+    navigation.replace('Login');
   };
 
   return (
