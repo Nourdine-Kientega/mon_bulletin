@@ -1,5 +1,8 @@
-import { View, Text, ScrollView, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react';
+import { ScrollView, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import FormField from '../components/FormField';
+import { validateEmail, validatePassword, validateConfirmPassword, } from '../utils/formValitor';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../utils/types';
 
@@ -8,58 +11,127 @@ type SignupScreenProps = {
 };
 
 const SignupScreen = ({ navigation }: SignupScreenProps) => {
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState<{ [key: string]: string | boolean }>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = () => {
-    // You can add validation and API logic here
-    console.log('Signup data:');
-    navigation.replace('Login');
+    const newErrors: typeof errors = {};
+
+    // Validation des champs spécifiques
+    if (form.firstName.trim() === '') newErrors.firstName = 'Ce champ est requis.';
+    if (form.lastName.trim() === '') newErrors.lastName = 'Ce champ est requis.';
+
+    const emailError = validateEmail(form.email);
+    if (emailError) newErrors.email = emailError;
+
+    const passError = validatePassword(form.password);
+    if (passError) newErrors.password = passError;
+
+    const confirmError = validateConfirmPassword(form.password, form.confirmPassword);
+    if (confirmError) newErrors.confirmPassword = confirmError;
+
+    setErrors(newErrors);
+
+    // Si toutes les erreurs sont vides, formulaire valide
+    if (Object.keys(newErrors).length === 0) {
+      console.log('Formulaire valide :', form);
+      // navigation.replace('Login');
+    }
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setForm({ ...form, [field]: value });
+    setErrors({ ...errors, [field]: '' }); // Clear error when typing
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Create an Account</Text>
+      <Text style={styles.title}>Créer un compte</Text>
 
-      <TextInput
-        placeholder="First Name"
-        style={styles.input}
+      <FormField
+        placeholder="Prénom"
+        value={form.firstName}
+        onChangeText={(text) => handleChange('firstName', text)}
+        leftIcon={<Ionicons name="person-outline" size={20} color="gray" />}
+        error={errors.firstName} // Only show error when not empty
       />
 
-      <TextInput
-        placeholder="Last Name"
-        style={styles.input}
+      <FormField
+        placeholder="Nom"
+        value={form.lastName}
+        onChangeText={(text) => handleChange('lastName', text)}
+        leftIcon={<Ionicons name="person-outline" size={20} color="gray" />}
+        error={errors.lastName} // Only show error when not empty
       />
 
-      <TextInput
+      <FormField
         placeholder="Email"
         keyboardType="email-address"
-        style={styles.input}
+        value={form.email}
+        onChangeText={(text) => handleChange('email', text)}
+        leftIcon={<Ionicons name="mail-outline" size={20} color="gray" />}
+        error={errors.email}
       />
 
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        style={styles.input}
+      <FormField
+        placeholder="Mot de passe"
+        secureTextEntry={!showPassword}
+        value={form.password}
+        onChangeText={(text) => handleChange('password', text)}
+        leftIcon={<Ionicons name="lock-closed-outline" size={20} color="gray" />}
+        rightIcon={
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={20}
+              color="gray"
+            />
+          </TouchableOpacity>
+        }
+        error={errors.password}
       />
 
-      <TextInput
-        placeholder="Confirm Password"
-        secureTextEntry
-        style={styles.input}
+      <FormField
+        placeholder="Confirmez le mot de passe"
+        secureTextEntry={!showConfirmPassword}
+        value={form.confirmPassword}
+        onChangeText={(text) => handleChange('confirmPassword', text)}
+        leftIcon={<Ionicons name="lock-closed-outline" size={20} color="gray" />}
+        rightIcon={
+          <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+            <Ionicons
+              name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={20}
+              color="gray"
+            />
+          </TouchableOpacity>
+        }
+        error={errors.confirmPassword}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignup}>
-        <Text style={styles.buttonText}>Sign Up</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSignup}
+        // disabled={isFormIncomplete}
+      >
+        <Text style={styles.buttonText}>S'inscrire</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.bottomText} onPress={() => navigation.replace('Login')}>
-        <Text>Already have an account? </Text>
-        <Text style={{ color: '#007AFF' }}>
-           Log in
-        </Text>
+        <Text>Vous avez déjà un compte ? </Text>
+        <Text style={{ color: '#007AFF' }}>Connectez-vous</Text>
       </TouchableOpacity>
     </ScrollView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -73,13 +145,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 24,
     textAlign: 'center',
-  },
-  input: {
-    backgroundColor: '#F0F0F0',
-    padding: 14,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 16,
   },
   button: {
     backgroundColor: '#27AE60',
@@ -100,6 +165,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
 
 export default SignupScreen;
