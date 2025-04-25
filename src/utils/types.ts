@@ -11,3 +11,11 @@ export type RootStackParamList = {
 
     // add more screens here if needed
 };
+
+export type User = {
+    id: number;
+    firstname: string;
+    lastname: string;
+    email: string;
+    password: string;
+};

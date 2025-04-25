@@ -5,12 +5,16 @@ import FormField from '../components/FormField';
 import { validateEmail, validatePassword, validateConfirmPassword, } from '../utils/formValitor';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../utils/types';
+import { hashPassword } from '../utils/hashPassword';
+import { addUser } from '../db/models/users';
+import AlertDanger from '../components/alertDanger';
 
 type SignupScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Signup'>;
 };
 
 const SignupScreen = ({ navigation }: SignupScreenProps) => {
+  const [signupError, setSignupError] = useState('');
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -22,7 +26,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     const newErrors: typeof errors = {};
 
     // Validation des champs spécifiques
@@ -42,8 +46,29 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
 
     // Si toutes les erreurs sont vides, formulaire valide
     if (Object.keys(newErrors).length === 0) {
-      console.log('Formulaire valide :', form);
-      // navigation.replace('Login');
+      try {
+        // Hash password
+        const hashedPassword = hashPassword(form.password);
+  
+        // Add user to DB
+        await addUser(
+          form.firstName.trim(),
+          form.lastName.trim(),
+          form.email.trim().toLowerCase(),
+          hashedPassword
+        );
+  
+        navigation.replace('Login');
+      } catch (error: any) {
+        // console.error('Erreur lors de l\'inscription :', error);
+        if (error?.message?.includes('UNIQUE constraint failed: users.email')) {
+          setSignupError('Adresse email déjà existante.');
+        } else {
+          setSignupError('Erreur lors de l’inscription. Réessayez.');
+        }
+      
+        setTimeout(() => setSignupError(''), 4000);
+      }
     }
   };
 
@@ -55,9 +80,9 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Créer un compte</Text>
-
+      <AlertDanger message={signupError} />
       <FormField
-        placeholder="Prénom"
+        placeholder="Nom"
         value={form.firstName}
         onChangeText={(text) => handleChange('firstName', text)}
         leftIcon={<Ionicons name="person-outline" size={20} color="gray" />}
@@ -65,7 +90,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
       />
 
       <FormField
-        placeholder="Nom"
+        placeholder="Prénom"
         value={form.lastName}
         onChangeText={(text) => handleChange('lastName', text)}
         leftIcon={<Ionicons name="person-outline" size={20} color="gray" />}

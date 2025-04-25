@@ -5,6 +5,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../utils/types';
 import { validateEmail, validatePassword } from '../utils/formValitor';
 import FormField from '../components/FormField';
+import { hashPassword, verifyPassword } from '../utils/hashPassword';
+import AlertDanger from '../components/alertDanger';
+import { getUserByEmail } from '../db/models/users';
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -14,28 +17,49 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
   const [errors, setErrors] = useState<{ email: string; password: string }>({
     email: '',
     password: '',
   });
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    setErrors({
-      email: emailError,
-      password: passwordError,
-    });
+    setErrors({ email: emailError, password: passwordError });
 
     if (!emailError && !passwordError) {
-      console.log('Données de connexion :', { email, password });
-      // navigation.replace('BottomTabs');
+      try {
+        const user = await getUserByEmail(email.trim().toLowerCase());
+        if (!user) {
+          setLoginError('Informations de connexion incorrectes.');
+          setTimeout(() => {
+            setLoginError('');
+          }, 4000);
+          return;
+        }
+
+        const isMatch = verifyPassword(password, user.password);
+        if (!isMatch) {
+          setLoginError('Informations de connexion incorrectes.');
+          setTimeout(() => {
+            setLoginError('');
+          }, 4000);
+          return;
+        }
+  
+        navigation.replace('BottomTabs');
+      } catch (error) {
+        console.error('Erreur login:', error);
+        setLoginError('Erreur lors de la connexion. Réessayez.');
+      }
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Se connecter</Text>
+      <AlertDanger message={loginError} />
 
       {/* Email Input */}
       <FormField
